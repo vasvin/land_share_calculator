@@ -1,0 +1,972 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f7f5f0">
+<meta name="description" content="Calculate land shares, individual ownership, allocated area and unutilised land in Kanal, Marla and Sarsai.">
+<title>Land Share Calculator</title>
+
+
+
+<style>
+:root {
+  --ink: #171714;
+  --muted: #6f6b63;
+  --paper: #f7f5f0;
+  --card: #fff;
+  --line: #ded9cf;
+  --accent: #8a6a42;
+  --accent-dark: #6f5332;
+  --soft: #eee9df;
+  --danger: #a23b32;
+  --success: #47624d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
+}
+
+input, button {
+  font: inherit;
+}
+
+.hero {
+  max-width: 1180px;
+  margin: auto;
+  padding: 70px 24px 42px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+h1 {
+  font-family: Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(38px, 5vw, 62px);
+  line-height: 1.04;
+  margin: 12px 0 15px;
+  max-width: 800px;
+}
+
+.hero p {
+  max-width: 680px;
+  color: var(--muted);
+  font-size: 16px;
+  margin: 0;
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: auto;
+  padding: 0 24px 70px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 28px;
+  margin-bottom: 20px;
+}
+
+.card h2 {
+  font-family: Georgia, serif;
+  font-size: 25px;
+  font-weight: 500;
+  margin: 0 0 5px;
+}
+
+.sub {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 22px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.copyright {
+  text-align: center;
+  padding: 12px 16px 20px;
+  font-size: 10px;
+  color: #9a958b;
+  letter-spacing: 0.03em;
+}
+
+label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #5f5a51;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+
+input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cbc5b9;
+  background: #fff;
+  color: var(--ink);
+  padding: 12px 13px;
+  font-size: 16px;
+  outline: none;
+  border-radius: 1px;
+}
+
+input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(138, 106, 66, .12);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+button {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 19px;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 1px;
+  transition: background .15s ease;
+}
+
+button:hover {
+  background: #302e29;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+button.secondary:hover {
+  background: var(--soft);
+}
+
+/* Summary */
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.stat {
+  border: 1px solid var(--line);
+  padding: 18px;
+  background: #faf9f6;
+  min-width: 0;
+}
+
+.stat .label {
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+
+.stat .value {
+  font-family: Georgia, serif;
+  font-size: 21px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.stat .percentage {
+  display: block;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+.remaining {
+  border-left: 3px solid var(--accent);
+}
+
+.allocated {
+  border-left: 3px solid var(--success);
+}
+
+/* Ownership table */
+
+.table-wrap {
+  border: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+th, td {
+  padding: 13px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+th {
+  background: #f0ede6;
+  color: #575249;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  font-size: 10px;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr:hover {
+  background: #fcfbf8;
+}
+
+th:nth-child(1), td:nth-child(1) { width: 7%; }
+th:nth-child(2), td:nth-child(2) { width: 27%; }
+th:nth-child(3), td:nth-child(3) { width: 23%; }
+th:nth-child(4), td:nth-child(4) { width: 28%; }
+th:nth-child(5), td:nth-child(5) { width: 15%; }
+
+.person-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.hissa-inputs {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.hissa-part {
+  width: 70px;
+  min-width: 0;
+  text-align: center;
+}
+
+.slash {
+  font-weight: 700;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.owned {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ownership-percent {
+  font-weight: 700;
+  color: var(--accent-dark);
+  white-space: nowrap;
+}
+
+/* Notices and calculation formula */
+
+.notice {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.warning {
+  color: var(--danger);
+  font-size: 13px;
+  padding: 11px 13px;
+  background: #fbefed;
+  border: 1px solid #ead0cb;
+  margin-top: 14px;
+  display: none;
+}
+
+.warning:empty {
+  display: none;
+}
+
+.formula {
+  background: var(--soft);
+  padding: 17px 18px;
+  margin-top: 18px;
+  font-size: 13px;
+  color: #4e4a43;
+}
+
+.formula strong {
+  color: var(--ink);
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+  .summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 650px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 760px) {
+  .hero {
+    padding: 42px 16px 26px;
+  }
+
+  .hero h1 {
+    font-size: 38px;
+  }
+
+  .hero p {
+    font-size: 14px;
+  }
+
+  .wrap {
+    padding: 0 12px 45px;
+  }
+
+  .card {
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  .card h2 {
+    font-size: 23px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .stat {
+    padding: 14px;
+  }
+
+  .stat .value {
+    font-size: 20px;
+  }
+
+  .table-wrap {
+    border: 0;
+    overflow: visible;
+  }
+
+  table, thead, tbody, tr, td {
+    display: block;
+    width: 100%;
+  }
+
+  table {
+    min-width: 0;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  tbody tr {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    grid-template-areas:
+      "sno name"
+      "sno hissa"
+      "sno owned"
+      "sno percent";
+    background: #fff;
+    border: 1px solid var(--line);
+    padding: 12px;
+    border-radius: 2px;
+  }
+
+  tbody tr:hover {
+    background: #fff;
+  }
+
+  tbody td {
+    border: 0;
+    padding: 5px 0;
+  }
+
+  tbody td:nth-child(1) {
+    grid-area: sno;
+    width: auto;
+    display: flex;
+    align-items: flex-start;
+    font-weight: 700;
+    color: var(--accent-dark);
+    padding-top: 8px;
+  }
+
+  tbody td:nth-child(2) {
+    grid-area: name;
+    width: auto;
+  }
+
+  tbody td:nth-child(3) {
+    grid-area: hissa;
+    width: auto;
+  }
+
+  tbody td:nth-child(4) {
+    grid-area: owned;
+    width: auto;
+  }
+
+  tbody td:nth-child(5) {
+    grid-area: percent;
+    width: auto;
+  }
+
+  tbody td:nth-child(3)::before {
+    content: "HISSA";
+    display: block;
+    font-size: 9px;
+    letter-spacing: .08em;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+
+  tbody td:nth-child(4)::before {
+    content: "OWNED AREA";
+    display: block;
+    font-size: 9px;
+    letter-spacing: .08em;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  tbody td:nth-child(5)::before {
+    content: "OWNERSHIP";
+    display: block;
+    font-size: 9px;
+    letter-spacing: .08em;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .person-input {
+    height: 46px;
+    font-size: 16px;
+  }
+
+  .hissa-inputs {
+    max-width: 230px;
+  }
+
+  .hissa-part {
+    height: 42px;
+    width: 82px;
+    font-size: 16px;
+  }
+
+  .owned {
+    font-size: 14px;
+  }
+
+  .ownership-percent {
+    font-size: 15px;
+  }
+
+  .notice {
+    font-size: 11px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<main>
+  <section class="hero">
+    <div class="eyebrow">Land Calculation Tool</div>
+
+    <h1>Land Share Calculator</h1>
+
+    <p>
+      Convert land into Sarsai, calculate each person's ownership
+      from their hissa, and see the allocated and unutilised land
+      at a glance.
+    </p>
+  </section>
+
+  <div class="wrap">
+
+    <section class="card">
+      <h2>1. Enter Total Land</h2>
+
+      <p class="sub">
+        Based on 1 Kanal = 20 Marla and 1 Marla = 9 Sarsai.
+      </p>
+
+      <div class="grid">
+        <div>
+          <label for="kanal">Kanal</label>
+          <input
+            id="kanal"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="Enter Kanal"
+            inputmode="numeric"
+          >
+        </div>
+
+        <div>
+          <label for="marla">Marla</label>
+          <input
+            id="marla"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="Enter Marla"
+            inputmode="numeric"
+          >
+        </div>
+
+        <div>
+          <label for="sarsai">Sarsai</label>
+          <input
+            id="sarsai"
+            type="number"
+            min="0"
+            step="any"
+            placeholder="Enter Sarsai"
+            inputmode="decimal"
+          >
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="reset" class="secondary" type="button">
+          Reset
+        </button>
+      </div>
+
+      <div class="summary">
+
+        <div class="stat">
+          <div class="label">Total in Sarsai</div>
+          <div class="value" id="totalSarsai">0.000</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Total Land</div>
+          <div class="value" id="totalKMS">0 K • 0 M • 0.000 S</div>
+        </div>
+
+        <div class="stat allocated">
+          <div class="label">Allocated Land</div>
+          <div class="value" id="allocated">0 K • 0 M • 0.000 S</div>
+          <span class="percentage" id="allocatedPercent">—</span>
+        </div>
+
+        <div class="stat remaining">
+          <div class="label">Unutilised Land</div>
+          <div class="value" id="remaining">0 K • 0 M • 0.000 S</div>
+          <span class="percentage" id="remainingPercent">—</span>
+        </div>
+
+      </div>
+
+      <div class="warning" id="warning" role="alert" aria-live="polite"></div>
+
+      <div class="formula">
+        <strong>Calculation:</strong><br><br>
+
+        Total Sarsai = (Kanal × 20 × 9) + (Marla × 9) + Sarsai.<br><br>
+
+        Individual ownership = Total Sarsai ×
+        (Hissa numerator ÷ Hissa denominator).<br><br>
+
+        Ownership % = Hissa numerator ÷ Hissa denominator × 100.<br><br>
+
+        Unutilised % = Unallocated Sarsai ÷ Total Sarsai × 100.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. Enter Ownership Details</h2>
+
+      <p class="sub">
+        Add up to 15 persons. Enter the hissa numerator and denominator separately.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">S.No.</th>
+              <th scope="col">Name</th>
+              <th scope="col">Hissa</th>
+              <th scope="col">Owned Area</th>
+              <th scope="col">Ownership %</th>
+            </tr>
+          </thead>
+
+          <tbody id="people"></tbody>
+        </table>
+      </div>
+
+      <div class="notice">
+        <strong>Example:</strong> For hissa 8/250, enter 8 in the
+        first box and 250 in the second. The calculator assigns
+        8 ÷ 250 of the total land to that person, equivalent to
+        3.20% ownership.
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  const rows = [];
+  const people = document.getElementById("people");
+
+  const getElement = id => document.getElementById(id);
+
+  function addRows() {
+    const fragment = document.createDocumentFragment();
+
+    for (let i = 1; i <= 15; i++) {
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${i}</td>
+
+        <td>
+          <input
+            class="person-input name"
+            type="text"
+            placeholder="Person ${i}"
+            aria-label="Name of person ${i}"
+            autocomplete="off"
+          >
+        </td>
+
+        <td>
+          <div class="hissa-inputs">
+            <input
+              class="hissa-part numerator"
+              type="number"
+              min="0"
+              step="1"
+              placeholder="8"
+              inputmode="numeric"
+              aria-label="Hissa numerator for person ${i}"
+            >
+
+            <span class="slash" aria-hidden="true">/</span>
+
+            <input
+              class="hissa-part denominator"
+              type="number"
+              min="1"
+              step="1"
+              placeholder="250"
+              inputmode="numeric"
+              aria-label="Hissa denominator for person ${i}"
+            >
+          </div>
+        </td>
+
+        <td class="owned">—</td>
+        <td class="ownership-percent">—</td>
+      `;
+
+      fragment.appendChild(tr);
+      rows.push(tr);
+    }
+
+    people.appendChild(fragment);
+  }
+
+  function num(value) {
+    if (value.trim() === "") return 0;
+
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) ? parsed : NaN;
+  }
+
+  function totalArea() {
+    const kanal = num(getElement("kanal").value);
+    const marla = num(getElement("marla").value);
+    const sarsai = num(getElement("sarsai").value);
+
+    if (
+      !Number.isFinite(kanal) ||
+      !Number.isFinite(marla) ||
+      !Number.isFinite(sarsai) ||
+      kanal < 0 ||
+      marla < 0 ||
+      sarsai < 0
+    ) {
+      return NaN;
+    }
+
+    return (kanal * 180) + (marla * 9) + sarsai;
+  }
+
+  function format3(number) {
+    return Number(number.toFixed(3)).toLocaleString("en-IN", {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3
+    });
+  }
+
+  function formatPercent(number) {
+    return Number(number.toFixed(2)).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) + "%";
+  }
+
+  function formatArea(sarsai) {
+    if (!Number.isFinite(sarsai)) return "Invalid";
+
+    const sign = sarsai < 0 ? "-" : "";
+    let x = Math.abs(sarsai);
+
+    const kanal = Math.floor(x / 180);
+    x -= kanal * 180;
+
+    const marla = Math.floor(x / 9);
+    x -= marla * 9;
+
+    return (
+      sign + kanal + " K • " +
+      marla + " M • " +
+      format3(x) + " S"
+    );
+  }
+
+  function parseFraction(tr) {
+    const numeratorInput = tr.querySelector(".numerator");
+    const denominatorInput = tr.querySelector(".denominator");
+
+    const rawA = numeratorInput.value.trim();
+    const rawB = denominatorInput.value.trim();
+
+    if (rawA === "" && rawB === "") {
+      return null;
+    }
+
+    if (rawA === "" || rawB === "") {
+      return NaN;
+    }
+
+    const a = Number(rawA);
+    const b = Number(rawB);
+
+    if (
+      !Number.isFinite(a) ||
+      !Number.isFinite(b) ||
+      !Number.isInteger(a) ||
+      !Number.isInteger(b) ||
+      a < 0 ||
+      b <= 0
+    ) {
+      return NaN;
+    }
+
+    return a / b;
+  }
+
+  function showWarning(message) {
+    const warning = getElement("warning");
+
+    warning.textContent = message;
+    warning.style.display = message ? "block" : "none";
+  }
+
+  function calculate() {
+    const total = totalArea();
+
+    if (!Number.isFinite(total)) {
+      getElement("totalSarsai").textContent = "—";
+      getElement("totalKMS").textContent = "—";
+      getElement("allocated").textContent = "—";
+      getElement("remaining").textContent = "—";
+      getElement("allocatedPercent").textContent = "—";
+      getElement("remainingPercent").textContent = "—";
+
+      rows.forEach(tr => {
+        tr.querySelector(".owned").textContent = "—";
+        tr.querySelector(".ownership-percent").textContent = "—";
+      });
+
+      showWarning("Enter valid, non-negative numbers for total land.");
+      return;
+    }
+
+    getElement("totalSarsai").textContent = format3(total);
+    getElement("totalKMS").textContent = formatArea(total);
+
+    let allocated = 0;
+    let invalid = [];
+    let hasOverAllocation = false;
+
+    rows.forEach((tr, index) => {
+      const frac = parseFraction(tr);
+      const ownedCell = tr.querySelector(".owned");
+      const percentCell = tr.querySelector(".ownership-percent");
+
+      if (frac === null) {
+        ownedCell.textContent = "—";
+        percentCell.textContent = "—";
+        return;
+      }
+
+      if (!Number.isFinite(frac) || frac < 0) {
+        ownedCell.textContent = "Invalid";
+        percentCell.textContent = "Invalid";
+        invalid.push(index + 1);
+        return;
+      }
+
+      const owned = total * frac;
+      allocated += owned;
+
+      ownedCell.textContent = formatArea(owned);
+      percentCell.textContent = formatPercent(frac * 100);
+    });
+
+    const remaining = total - allocated;
+
+    getElement("allocated").textContent = formatArea(allocated);
+    getElement("remaining").textContent = formatArea(remaining);
+
+    if (total > 0) {
+      getElement("allocatedPercent").textContent =
+        formatPercent((allocated / total) * 100) + " of total land";
+
+      getElement("remainingPercent").textContent =
+        formatPercent((remaining / total) * 100) + " of total land";
+    } else {
+      getElement("allocatedPercent").textContent = "—";
+      getElement("remainingPercent").textContent = "—";
+    }
+
+    if (invalid.length) {
+      showWarning(
+        "Please correct the hissa in row(s) " +
+        invalid.join(", ") +
+        ". Enter a valid numerator and a positive denominator, such as 8 / 250."
+      );
+      return;
+    }
+
+    if (total > 0 && allocated > total + 1e-9) {
+      showWarning(
+        "The entered hissa totals more than 100%. Please review the shares. " +
+        "The allocated area exceeds the total land."
+      );
+      return;
+    }
+
+    if (total === 0 && allocated > 0) {
+      showWarning(
+        "Enter the total land to calculate the allocated and unutilised percentages."
+      );
+      return;
+    }
+
+    showWarning("");
+  }
+
+  function resetCalculator() {
+    ["kanal", "marla", "sarsai"].forEach(id => {
+      getElement(id).value = "";
+    });
+
+    rows.forEach(tr => {
+      tr.querySelector(".name").value = "";
+      tr.querySelector(".numerator").value = "";
+      tr.querySelector(".denominator").value = "";
+      tr.querySelector(".owned").textContent = "—";
+      tr.querySelector(".ownership-percent").textContent = "—";
+    });
+
+    calculate();
+  }
+
+  ["kanal", "marla", "sarsai"].forEach(id => {
+    getElement(id).addEventListener("input", calculate);
+  });
+
+  people.addEventListener("input", calculate);
+  getElement("reset").addEventListener("click", resetCalculator);
+
+  addRows();
+  calculate();
+})();
+</script>
+
+<footer class="copyright">
+  Created by Vinay Vasisht © 2026
+</footer>
+
+</body>
+</html>
